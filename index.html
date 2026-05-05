@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#faf8ef">
+  <title>2048 Game - Web & Mobile</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23edc22e' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' text-anchor='middle' dominant-baseline='central' fill='%23776e65'>2048</text></svg>">
+</head>
+<body>
+  <!-- Main Menu -->
+  <div id="menu-screen" class="screen active">
+    <div class="menu-container">
+      <h1 class="menu-title">2048</h1>
+      <p class="menu-subtitle">Combine tiles to reach 2048!</p>
+      
+      <div class="menu-options">
+        <button class="menu-btn" onclick="startGameMode('solo')">
+          <span class="btn-icon">🤖</span>
+          <span>Play Solo (vs AI)</span>
+        </button>
+        <button class="menu-btn" onclick="startGameMode('friend')">
+          <span class="btn-icon">👥</span>
+          <span>Play with Friend</span>
+        </button>
+        <button class="menu-btn" onclick="startGameMode('ai-only')">
+          <span class="btn-icon">⚔️</span>
+          <span>Watch AI Battle</span>
+        </button>
+        <button class="menu-btn" onclick="startGameMode('classic')">
+          <span class="btn-icon">🎮</span>
+          <span>Classic Mode</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Difficulty Selection -->
+  <div id="difficulty-screen" class="screen">
+    <div class="difficulty-container">
+      <h2>Select Difficulty</h2>
+      <div class="difficulty-buttons">
+        <button class="diff-btn easy" onclick="setDifficulty('easy')">
+          <span class="diff-label">Easy</span>
+          <span class="diff-desc">AI makes random moves</span>
+        </button>
+        <button class="diff-btn normal" onclick="setDifficulty('normal')">
+          <span class="diff-label">Normal</span>
+          <span class="diff-desc">Balanced AI</span>
+        </button>
+        <button class="diff-btn hard" onclick="setDifficulty('hard')">
+          <span class="diff-label">Hard</span>
+          <span class="diff-desc">Smart AI strategy</span>
+        </button>
+        <button class="diff-btn extreme" onclick="setDifficulty('extreme')">
+          <span class="diff-label">Extreme</span>
+          <span class="diff-desc">Near perfect AI</span>
+        </button>
+      </div>
+      <button class="back-btn" onclick="backToMenu()">← Back</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <div class="game-container">
+      <div class="game-header">
+        <div class="header-left">
+          <h1 class="game-title">2048</h1>
+          <div class="game-mode-info">
+            <span id="mode-label">Mode: Solo</span>
+            <span id="difficulty-label">Difficulty: Normal</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="score-box">
+            <label>Your Score</label>
+            <span id="player-score">0</span>
+          </div>
+          <div class="score-box" id="ai-score-box" style="display:none;">
+            <label>AI Score</label>
+            <span id="ai-score">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="game-content">
+        <!-- Player Board -->
+        <div class="board-container" id="player-board-container">
+          <h3 id="player-label">You</h3>
+          <div id="player-board" class="game-board"></div>
+          <div class="board-status" id="player-status"></div>
+        </div>
+
+        <!-- AI Board -->
+        <div class="board-container" id="ai-board-container" style="display:none;">
+          <h3 id="ai-label">AI</h3>
+          <div id="ai-board" class="game-board"></div>
+          <div class="board-status" id="ai-status"></div>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <div class="instructions">
+          <p>Use <kbd>Arrow Keys</kbd> or <kbd>Swipe</kbd> to move</p>
+        </div>
+        <div class="button-group">
+          <button id="new-game-btn" class="action-btn">New Game</button>
+          <button id="undo-btn" class="action-btn">Undo</button>
+          <button id="menu-btn" class="action-btn">Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="screen">
+    <div class="gameover-container">
+      <h2>Game Over!</h2>
+      <div id="gameover-content"></div>
+      <div class="gameover-buttons">
+        <button class="gameover-btn" onclick="restartGame()">Play Again</button>
+        <button class="gameover-btn" onclick="backToMenu()">Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/game.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
