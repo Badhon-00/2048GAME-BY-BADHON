@@ -12,9 +12,19 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <link rel="icon" href="/icons/icon-192.png" type="image/png" />
-  <link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
+
+<!-- ═══════════════ NAME MODAL ═══════════════ -->
+<div id="name-modal" class="nm-backdrop" style="display:none">
+  <div class="nm-card">
+    <div class="nm-title" id="nm-title">Who's playing?</div>
+    <div class="nm-fields" id="nm-fields"></div>
+    <button id="nm-confirm" class="nm-confirm">Let's Play! ▶</button>
+    <button id="nm-cancel"  class="nm-cancel">Cancel</button>
+  </div>
+</div>
 
 <!-- ═══════════════ INSTALL BANNER ═══════════════ -->
 <div id="install-banner" class="install-banner" style="display:none">
@@ -167,13 +177,21 @@
         <button id="go-again">▶ Play Again</button>
         <button id="go-menu">☰ Menu</button>
       </div>
+      <!-- Scoreboard -->
+      <div class="sb-section" id="sb-section">
+        <div class="sb-header">
+          <span class="sb-title" id="sb-title">🏅 Scoreboard</span>
+          <span class="sb-badge" id="sb-badge"></span>
+        </div>
+        <div class="sb-list" id="sb-list"></div>
+      </div>
     </div>
   </div>
 
 </div>
 
-<script src="js/game.js?v=2"></script>
-<script src="js/ui.js?v=2"></script>
+<script src="js/game.js?v=3"></script>
+<script src="js/ui.js?v=3"></script>
 <script>
   /* ── Service Worker registration ── */
   if ('serviceWorker' in navigator) {
