@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   ui.js — Game UI, Modes, Controls
+   ui.js — Game UI, Modes, Controls, Scoreboard
    Modes: solo | ai (watch) | vs-ai | vs-friend
    Difficulties: easy | medium | hard
 ═══════════════════════════════════════════ */
@@ -8,14 +8,16 @@
 
   /* ── State ── */
   const S = {
-    mode: 'solo',
-    diff: 'medium',
-    boards: [],
-    turn: 0,          // vs-friend active player index
+    mode:      'solo',
+    diff:      'medium',
+    boards:    [],
+    turn:      0,
     aiRunning: false,
-    aiPaused: false,
-    aiTimer: null,
-    active: false,
+    aiPaused:  false,
+    aiTimer:   null,
+    active:    false,
+    names:     ['', ''],   // player names
+    currentRank: null,     // rank of this game in scoreboard
   };
 
   /* ── DOM ── */
@@ -40,15 +42,103 @@
   const goSub       = $('go-sub');
   const goScores    = $('go-scores');
   const goAgain     = $('go-again');
-  const goMenu      = $('go-menu');
+  const goMenuBtn   = $('go-menu');
+  const sbSection   = $('sb-section');
+  const sbTitle     = $('sb-title');
+  const sbBadge     = $('sb-badge');
+  const sbList      = $('sb-list');
+  const nameModal   = $('name-modal');
+  const nmTitle     = $('nm-title');
+  const nmFields    = $('nm-fields');
+  const nmConfirm   = $('nm-confirm');
+  const nmCancel    = $('nm-cancel');
 
-  /* ── Difficulty hints ── */
+  /* ── Difficulty ── */
   const DIFF_HINTS = {
     easy:   'Random moves — great for beginners',
     medium: 'Expectimax depth 3 — solid strategy',
     hard:   'Expectimax depth 5 — tough opponent',
   };
   const AI_DEPTHS = { easy: 0, medium: 3, hard: 5 };
+  const AI_LABELS = { easy: 'MELISSA AI', medium: 'MELISSA AI', hard: 'MELISSA AI' };
+
+  /* ══════════════════════════════════════════
+     SCOREBOARD  (localStorage)
+  ══════════════════════════════════════════ */
+  const SB_KEYS = { solo: 'sb_solo', ai: 'sb_ai', 'vs-ai': 'sb_vsai', 'vs-friend': 'sb_vsfriend' };
+  const SB_MAX  = 20;
+
+  function getScores(mode) {
+    try { return JSON.parse(localStorage.getItem(SB_KEYS[mode]) || '[]'); }
+    catch { return []; }
+  }
+  function saveScores(mode, arr) {
+    try { localStorage.setItem(SB_KEYS[mode], JSON.stringify(arr)); } catch {}
+  }
+
+  /* Add one entry, keep top SB_MAX sorted by score desc */
+  function addScore(mode, entry) {
+    const arr = getScores(mode);
+    arr.push(entry);
+    arr.sort((a, b) => (b.score || b.score1 || 0) - (a.score || a.score1 || 0));
+    if (arr.length > SB_MAX) arr.length = SB_MAX;
+    saveScores(mode, arr);
+    // return the rank (1-based) of the just-added entry
+    return arr.findIndex(e => e === entry) + 1;
+  }
+
+  function fmtDate(ts) {
+    const d = new Date(ts);
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  }
+
+  /* ── Render scoreboard into #sb-list ── */
+  function renderScoreboard(mode, highlightScore) {
+    const rows = getScores(mode);
+    sbSection.style.display = rows.length ? 'block' : 'none';
+    if (!rows.length) return;
+
+    const modeNames = { solo:'Solo', ai:'Watch AI', 'vs-ai':'vs AI', 'vs-friend':'vs Friend' };
+    sbTitle.textContent = `🏅 ${modeNames[mode] || mode} Scoreboard`;
+    sbBadge.textContent = `Top ${rows.length}`;
+
+    sbList.innerHTML = rows.map((e, i) => {
+      let nameCol, scoreCol, extraCol;
+      if (mode === 'solo') {
+        nameCol  = esc(e.name);
+        scoreCol = (+e.score).toLocaleString();
+        extraCol = `Best: ${e.bestTile}`;
+      } else if (mode === 'ai') {
+        nameCol  = esc(e.diff || 'AI');
+        scoreCol = (+e.score).toLocaleString();
+        extraCol = `Best: ${e.bestTile}`;
+      } else if (mode === 'vs-ai') {
+        nameCol  = esc(e.name);
+        scoreCol = (+e.score).toLocaleString();
+        extraCol = e.result === 'win' ? '🏆' : (e.result === 'tie' ? '🤝' : '🤖');
+      } else {
+        nameCol  = `${esc(e.name1)} vs ${esc(e.name2)}`;
+        scoreCol = `${(+e.score1).toLocaleString()} – ${(+e.score2).toLocaleString()}`;
+        extraCol = esc(e.winner);
+      }
+
+      const isHighlight = (mode === 'vs-friend')
+        ? (e.score1 === highlightScore)
+        : (e.score === highlightScore);
+
+      return `<div class="sb-row${isHighlight ? ' sb-current' : ''}">
+        <span class="sb-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span>
+        <span class="sb-name">${nameCol}</span>
+        <span class="sb-score">${scoreCol}</span>
+        <span class="sb-extra">${extraCol}</span>
+        <span class="sb-date">${fmtDate(e.date)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
   /* ══════════════════════════════════════════
      MENU INTERACTIONS
@@ -72,12 +162,71 @@
     });
   });
 
-  startBtn.addEventListener('click',    startGame);
+  startBtn.addEventListener('click',    () => showNameModal(false));
   menuBtn.addEventListener('click',     goMenu_fn);
-  restartBtn.addEventListener('click',  startGame);
-  goAgain.addEventListener('click',     startGame);
-  goMenu.addEventListener('click',      goMenu_fn);
+  restartBtn.addEventListener('click',  restartSameGame);
+  goAgain.addEventListener('click',     restartSameGame);
+  goMenuBtn.addEventListener('click',   goMenu_fn);
   aiToggleBtn.addEventListener('click', toggleAI);
+
+  /* ══════════════════════════════════════════
+     NAME MODAL
+  ══════════════════════════════════════════ */
+  function showNameModal() {
+    const mode = S.mode;
+    nmFields.innerHTML = '';
+
+    if (mode === 'ai') {
+      // Watch AI — no name needed, just launch
+      S.names = ['AI', 'AI'];
+      startGame();
+      return;
+    }
+
+    if (mode === 'solo') {
+      nmTitle.textContent = '👤 Enter your name';
+      nmFields.innerHTML = makeInput('nm-p1', 'Your name', 'Player 1');
+    } else if (mode === 'vs-ai') {
+      nmTitle.textContent = '🤖 Your name to challenge the AI';
+      nmFields.innerHTML = makeInput('nm-p1', 'Your name', 'Player 1');
+    } else if (mode === 'vs-friend') {
+      nmTitle.textContent = '👥 Enter player names';
+      nmFields.innerHTML =
+        makeInput('nm-p1', 'Player 1 name', 'Player 1') +
+        makeInput('nm-p2', 'Player 2 name', 'Player 2');
+    }
+
+    nameModal.style.display = 'flex';
+    const first = nmFields.querySelector('input');
+    if (first) setTimeout(() => first.focus(), 80);
+  }
+
+  function makeInput(id, label, placeholder) {
+    return `<div class="nm-field-wrap">
+      <label class="nm-label" for="${id}">${label}</label>
+      <input class="nm-input" id="${id}" type="text" maxlength="20"
+             placeholder="${placeholder}" autocomplete="off" />
+    </div>`;
+  }
+
+  nmConfirm.addEventListener('click', () => {
+    const p1Input = $('nm-p1');
+    const p2Input = $('nm-p2');
+    S.names[0] = (p1Input ? p1Input.value.trim() : '') || 'Player 1';
+    S.names[1] = (p2Input ? p2Input.value.trim() : '') || 'Player 2';
+    nameModal.style.display = 'none';
+    startGame();
+  });
+
+  nmCancel.addEventListener('click', () => {
+    nameModal.style.display = 'none';
+  });
+
+  // Allow pressing Enter to confirm
+  nameModal.addEventListener('keydown', e => {
+    if (e.key === 'Enter') nmConfirm.click();
+    if (e.key === 'Escape') nmCancel.click();
+  });
 
   /* ══════════════════════════════════════════
      START GAME
@@ -88,6 +237,7 @@
     S.boards = [];
     S.turn = 0;
     S.active = true;
+    S.currentRank = null;
     boardsArea.innerHTML = '';
     boardsArea.className = 'boards-area';
     ghScores.innerHTML = '';
@@ -117,6 +267,11 @@
     touchHint.style.display = 'none';
   }
 
+  function restartSameGame() {
+    // Restart with the same player names — no name modal
+    startGame();
+  }
+
   /* ── Build helpers ── */
   function makeBoard(label, isAI, pClass) {
     const b = {
@@ -130,24 +285,20 @@
   }
 
   function buildSolo() {
-    S.boards.push(makeBoard('You', false, 'lbl-solo'));
+    S.boards.push(makeBoard(S.names[0], false, 'lbl-solo'));
   }
   function buildWatchAI() {
-    const labels = { easy:'Easy AI', medium:'Medium AI', hard:'Hard AI' };
-    S.boards.push(makeBoard(labels[S.diff] || 'AI', true, 'lbl-ai'));
-    boardsArea.classList.add('two-boards'); // keep single, but class used for AI
-    boardsArea.classList.remove('two-boards');
+    S.boards.push(makeBoard(AI_LABELS[S.diff] || 'AI', true, 'lbl-ai'));
   }
   function buildVsAI() {
     boardsArea.classList.add('two-boards');
-    S.boards.push(makeBoard('You',  false, 'lbl-p1'));
-    const labels = { easy:'Easy AI', medium:'Medium AI', hard:'Hard AI' };
-    S.boards.push(makeBoard(labels[S.diff] || 'AI', true, 'lbl-ai'));
+    S.boards.push(makeBoard(S.names[0], false, 'lbl-p1'));
+    S.boards.push(makeBoard(AI_LABELS[S.diff] || 'AI', true, 'lbl-ai'));
   }
   function buildVsFriend() {
     boardsArea.classList.add('two-boards');
-    S.boards.push(makeBoard('Player 1', false, 'lbl-p1'));
-    S.boards.push(makeBoard('Player 2', false, 'lbl-p2'));
+    S.boards.push(makeBoard(S.names[0], false, 'lbl-p1'));
+    S.boards.push(makeBoard(S.names[1], false, 'lbl-p2'));
   }
 
   /* ══════════════════════════════════════════
@@ -266,22 +417,20 @@
 
     if (S.mode === 'solo') {
       gameBanner.classList.add('banner-solo');
-      html = '🎮 Solo Play — reach <strong>2048!</strong>';
+      html = `🎮 ${esc(S.names[0])} — reach <strong>2048!</strong>`;
     } else if (S.mode === 'ai') {
-      const labels = { easy:'Easy', medium:'Medium', hard:'Hard' };
       gameBanner.classList.add('banner-ai');
-      html = `👁️ Watching ${labels[S.diff]} AI play`;
+      html = `👁️ Watching MELISSA AI play`;
     } else if (S.mode === 'vs-ai') {
-      const labels = { easy:'Easy', medium:'Medium', hard:'Hard' };
       gameBanner.classList.add('banner-vs-ai');
-      html = `🤖 You vs ${labels[S.diff]} AI — best score wins!`;
+      html = `🤖 ${esc(S.names[0])} vs MELISSA AI`;
     } else if (S.mode === 'vs-friend') {
       if (S.turn === 0) {
         gameBanner.classList.add('banner-p1');
-        html = `<span class="turn-dot dot-p1"></span> Player 1's turn`;
+        html = `<span class="turn-dot dot-p1"></span> ${esc(S.names[0])}'s turn`;
       } else {
         gameBanner.classList.add('banner-p2');
-        html = `<span class="turn-dot dot-p2"></span> Player 2's turn`;
+        html = `<span class="turn-dot dot-p2"></span> ${esc(S.names[1])}'s turn`;
       }
     }
     gameBanner.innerHTML = html;
@@ -316,7 +465,7 @@
     if (!S.active) return;
     let idx = 0;
     if (S.mode === 'vs-friend') idx = S.turn;
-    if (S.mode === 'vs-ai')     idx = 0; // human always index 0
+    if (S.mode === 'vs-ai')     idx = 0;
 
     const b = S.boards[idx];
     if (!b || b.isAI || b.board.over) return;
@@ -400,9 +549,8 @@
      GAME OVER / WIN CHECK
   ══════════════════════════════════════════ */
   function checkEnd() {
-    const allOver  = S.boards.every(b => b.board.over);
-    const b0over   = S.boards[0] && S.boards[0].board.over;
-
+    const b0over = S.boards[0] && S.boards[0].board.over;
+    const allOver = S.boards.every(b => b.board.over);
     const ended = (S.mode === 'solo' || S.mode === 'ai') ? b0over : allOver;
     if (!ended) return;
 
@@ -411,22 +559,26 @@
     setTimeout(showEndScreen, 350);
   }
 
+  /* ── Save score and show end screen ── */
   function showEndScreen() {
-    const scores = S.boards.map(b => b.board.score);
-    const maxScore = Math.max(...scores);
+    const scores    = S.boards.map(b => b.board.score);
+    const maxScore  = Math.max(...scores);
+    let highlightScore = scores[0];
 
+    /* ── Build result cards ── */
     goScores.innerHTML = '';
     S.boards.forEach((b, i) => {
       const div = document.createElement('div');
       const isWinner = S.boards.length > 1 && b.board.score === maxScore;
       div.className = 'go-score-card' + (isWinner ? ' winner' : '');
       div.innerHTML = `
-        <div class="gc-name">${b.label}</div>
+        <div class="gc-name">${esc(b.label)}</div>
         <div class="gc-score">${b.board.score.toLocaleString()}</div>
         <div class="gc-tile">Best: ${b.board.maxTile()}</div>`;
       goScores.appendChild(div);
     });
 
+    /* ── Title / emoji ── */
     if (S.mode === 'solo') {
       const won = S.boards[0].board.won;
       goEmoji.textContent = won ? '🏆' : '😔';
@@ -439,16 +591,51 @@
     } else {
       if (scores[0] > scores[1]) {
         goEmoji.textContent = '🥇';
-        goTitle.textContent = S.mode === 'vs-ai' ? 'You Win!' : 'Player 1 Wins!';
+        goTitle.textContent = S.mode === 'vs-ai' ? `${esc(S.names[0])} Wins!` : `${esc(S.names[0])} Wins!`;
       } else if (scores[1] > scores[0]) {
         goEmoji.textContent = S.mode === 'vs-ai' ? '🤖' : '🥇';
-        goTitle.textContent = S.mode === 'vs-ai' ? 'AI Wins!' : 'Player 2 Wins!';
+        goTitle.textContent = S.mode === 'vs-ai' ? 'MELISSA AI Wins!' : `${esc(S.names[1])} Wins!`;
       } else {
         goEmoji.textContent = '🤝';
         goTitle.textContent = "It's a Tie!";
       }
       goSub.textContent = 'Final Scores';
     }
+
+    /* ── Save to scoreboard ── */
+    const now = Date.now();
+    if (S.mode === 'solo') {
+      const rank = addScore('solo', {
+        name: S.names[0], score: scores[0],
+        bestTile: S.boards[0].board.maxTile(), won: S.boards[0].board.won, date: now,
+      });
+      S.currentRank = rank;
+    } else if (S.mode === 'ai') {
+      addScore('ai', {
+        diff: S.diff, score: scores[0],
+        bestTile: S.boards[0].board.maxTile(), date: now,
+      });
+    } else if (S.mode === 'vs-ai') {
+      let result = scores[0] > scores[1] ? 'win' : scores[0] < scores[1] ? 'lose' : 'tie';
+      const rank = addScore('vs-ai', {
+        name: S.names[0], score: scores[0], aiScore: scores[1],
+        diff: S.diff, result, bestTile: S.boards[0].board.maxTile(), date: now,
+      });
+      S.currentRank = rank;
+      highlightScore = scores[0];
+    } else if (S.mode === 'vs-friend') {
+      const winner = scores[0] > scores[1] ? S.names[0]
+                   : scores[1] > scores[0] ? S.names[1] : 'Tie';
+      addScore('vs-friend', {
+        name1: S.names[0], score1: scores[0],
+        name2: S.names[1], score2: scores[1],
+        winner, date: now,
+      });
+      highlightScore = scores[0];
+    }
+
+    /* ── Render scoreboard ── */
+    renderScoreboard(S.mode, highlightScore);
 
     overlay.style.display = 'flex';
   }
