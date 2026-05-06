@@ -1,0 +1,11 @@
+{
+  "name": "2048-cli",
+  "version": "1.0.0",
+  "description": "2048 Node.js CLI — all game modes + AI",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "engines": { "node": ">=16.0.0" },
+  "license": "MIT"
+}

@@ -1,0 +1,2 @@
+# No external dependencies — uses Python 3.11+ stdlib only
+# (random, math, sys, os, tty, termios, select, signal)
