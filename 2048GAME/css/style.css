@@ -45,19 +45,19 @@ body {
    MENU SCREEN
 ══════════════════════════════════════════ */
 #menu-screen {
-  align-items: flex-start;
-  justify-content: center;
-  overflow-y: auto;
-  overflow-x: hidden;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .menu-scroll {
+  flex: 1;
   width: 100%;
-  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
+  padding: 16px 16px 8px;
 }
 
 .menu-container {
@@ -65,7 +65,7 @@ body {
   max-width: 440px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* Logo */
@@ -580,6 +580,65 @@ body {
 .boards-area.two-boards .v4096,
 .boards-area.two-boards .v8192,
 .boards-area.two-boards .vbig  { font-size: clamp(7px, 2vw, 13px); }
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+.menu-footer {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 9px 16px 11px;
+  flex-wrap: wrap;
+  background: var(--bg);
+  border-top: 1.5px solid #eae6e0;
+}
+
+.footer-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-lt);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #f0ece6;
+  border: 1.5px solid #e2ddd8;
+  transition: all 0.18s;
+}
+.footer-github:hover {
+  background: #1F2328;
+  color: #fff;
+  border-color: #1F2328;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+}
+.footer-github:active { transform: scale(0.96); }
+
+.gh-svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.footer-sep {
+  color: #d4cec8;
+  font-size: 14px;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--text-lt);
+}
+.footer-copy strong {
+  color: var(--text);
+  font-weight: 700;
+}
 
 /* ══════════════════════════════════════════
    PWA — INSTALL BANNER

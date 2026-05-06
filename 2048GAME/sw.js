@@ -1,4 +1,4 @@
-const CACHE_NAME = '2048-v1';
+const CACHE_NAME = '2048-v3';
 
 const ASSETS = [
   '/',
