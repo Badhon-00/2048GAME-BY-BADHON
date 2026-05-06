@@ -40,13 +40,34 @@ Heuristics include: monotonicity, smoothness, empty cells, corner bonus, merge p
 └── README.md        # This file
 ```
 
-## Run Locally
+## C++ Terminal Version
+
+A full native C++ implementation lives in `cpp/`. Same game logic and AI — runs entirely in your terminal with ANSI color tiles.
+
+```
+2048GAME/cpp/
+├── game.hpp / game.cpp   # GameBoard class — board logic, move engine
+├── ai.hpp  / ai.cpp      # AIEngine class — Expectimax + heuristics
+├── main.cpp              # Terminal UI, all 4 game modes
+└── Makefile              # Build config
+```
+
+**Build & run:**
+```bash
+cd 2048GAME/cpp
+make
+./2048
+```
+
+**Controls:** `W A S D` or Arrow keys · `R` = restart · `P` = pause (Watch AI) · `Q` = quit
+
+## Run Web Version Locally
 
 ```bash
 cd 2048GAME
 npm install
 npm start
-# Open http://localhost:3000
+# Open http://localhost:5000
 ```
 
 ## Deploy to Vercel

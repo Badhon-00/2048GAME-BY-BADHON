@@ -14,6 +14,14 @@ A full-featured 2048 puzzle game playable on web and mobile, with AI opponent, m
 - Vanilla JS (no frameworks)
 - CSS3 (animations, responsive, mobile-first)
 
+## C++ Terminal Version
+
+- `2048GAME/cpp/game.hpp` + `game.cpp` — GameBoard class (board logic, move engine)
+- `2048GAME/cpp/ai.hpp` + `ai.cpp` — AIEngine class (Expectimax + heuristics)
+- `2048GAME/cpp/main.cpp` — Terminal UI, all 4 game modes, ANSI colour output
+- `2048GAME/cpp/Makefile` — `make && ./2048` to build and run
+- Compiled with `g++ -std=c++17 -O2`
+
 ## Where things live
 
 - `2048GAME/index.html` — Main game shell
