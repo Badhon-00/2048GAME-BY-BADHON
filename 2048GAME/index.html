@@ -7,10 +7,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Classic 2048 puzzle — Solo, vs AI, vs Friend, Watch AI. Play online or offline." />
   <title>2048</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+
+<!-- ═══════════════ INSTALL BANNER ═══════════════ -->
+<div id="install-banner" class="install-banner" style="display:none">
+  <span class="ib-icon">📲</span>
+  <span class="ib-text">Install 2048 — play offline anytime!</span>
+  <button id="install-btn" class="ib-install">Install</button>
+  <button id="install-dismiss" class="ib-dismiss">✕</button>
+</div>
+
+<!-- ═══════════════ OFFLINE TOAST ═══════════════ -->
+<div id="offline-toast" class="offline-toast" style="display:none">
+  📴 You're offline — game still works!
+</div>
 
 <!-- ═══════════════ MENU SCREEN ═══════════════ -->
 <div id="menu-screen" class="screen active">
@@ -134,5 +151,59 @@
 
 <script src="js/game.js"></script>
 <script src="js/ui.js"></script>
+<script>
+  /* ── Service Worker registration ── */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  /* ── Online / Offline toast ── */
+  const offlineToast = document.getElementById('offline-toast');
+  function showOfflineToast() {
+    offlineToast.style.display = 'block';
+    setTimeout(() => { offlineToast.style.display = 'none'; }, 3500);
+  }
+  window.addEventListener('offline', showOfflineToast);
+  window.addEventListener('online', () => {
+    offlineToast.textContent = '✅ Back online!';
+    offlineToast.style.display = 'block';
+    setTimeout(() => {
+      offlineToast.style.display = 'none';
+      offlineToast.textContent = '📴 You\'re offline — game still works!';
+    }, 2500);
+  });
+  if (!navigator.onLine) showOfflineToast();
+
+  /* ── PWA Install prompt ── */
+  let deferredPrompt = null;
+  const installBanner  = document.getElementById('install-banner');
+  const installBtn     = document.getElementById('install-btn');
+  const installDismiss = document.getElementById('install-dismiss');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner.style.display = 'flex';
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBanner.style.display = 'none';
+  });
+
+  installDismiss.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+    deferredPrompt = null;
+  });
+</script>
 </body>
 </html>
