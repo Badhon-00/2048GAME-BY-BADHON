@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#faf8ef" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>2048 Game</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- MENU SCREEN -->
+  <div id="menu-screen" class="screen active">
+    <div class="menu-container">
+      <div class="logo-title">
+        <div class="logo-tile">2048</div>
+        <p class="tagline">Join the tiles, reach <strong>2048!</strong></p>
+      </div>
+
+      <div class="menu-section">
+        <h2>Select Mode</h2>
+        <div class="mode-buttons">
+          <button class="mode-btn active" data-mode="solo">Solo Play</button>
+          <button class="mode-btn" data-mode="ai">Watch AI</button>
+          <button class="mode-btn" data-mode="vs-ai">vs AI</button>
+          <button class="mode-btn" data-mode="vs-friend">vs Friend</button>
+        </div>
+      </div>
+
+      <div class="menu-section" id="difficulty-section">
+        <h2>AI Difficulty</h2>
+        <div class="difficulty-buttons">
+          <button class="diff-btn" data-diff="easy">Easy</button>
+          <button class="diff-btn active" data-diff="normal">Normal</button>
+          <button class="diff-btn" data-diff="hard">Hard</button>
+          <button class="diff-btn" data-diff="extreme">Extreme</button>
+        </div>
+      </div>
+
+      <button id="start-btn" class="start-btn">Start Game</button>
+
+      <div class="menu-footer">
+        <p>Use <kbd>↑ ↓ ← →</kbd> or swipe to play</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen">
+
+    <!-- HEADER -->
+    <div class="game-header">
+      <div class="header-left">
+        <div class="game-logo">2048</div>
+      </div>
+      <div class="header-scores" id="header-scores">
+        <!-- Scores injected by JS -->
+      </div>
+      <div class="header-right">
+        <button id="menu-btn" class="icon-btn" title="Menu">☰</button>
+        <button id="restart-btn" class="icon-btn" title="Restart">↺</button>
+      </div>
+    </div>
+
+    <!-- MODE LABEL -->
+    <div class="mode-label" id="mode-label"></div>
+
+    <!-- BOARDS WRAPPER -->
+    <div class="boards-wrapper" id="boards-wrapper">
+      <!-- Board(s) injected by JS -->
+    </div>
+
+    <!-- AI CONTROLS (shown when AI is active) -->
+    <div class="ai-controls" id="ai-controls" style="display:none">
+      <button id="ai-toggle-btn" class="ai-btn">⏸ Pause AI</button>
+      <span class="ai-speed-label">Speed:</span>
+      <input type="range" id="ai-speed" min="1" max="10" value="5" />
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div class="overlay" id="game-over-overlay" style="display:none">
+      <div class="overlay-box">
+        <h2 id="overlay-title">Game Over!</h2>
+        <p id="overlay-subtitle"></p>
+        <div id="overlay-scores"></div>
+        <div class="overlay-buttons">
+          <button id="overlay-restart">Play Again</button>
+          <button id="overlay-menu">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>

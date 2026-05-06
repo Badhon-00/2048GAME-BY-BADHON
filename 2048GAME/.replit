@@ -1,0 +1,8 @@
+run = "node 2048GAME/server.js"
+
+[nix]
+channel = "stable-23_11"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

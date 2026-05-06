@@ -1,0 +1,18 @@
+{
+  "name": "2048game",
+  "version": "1.0.0",
+  "description": "2048 Game — Solo, AI Watch, vs AI, vs Friend. Mobile & Web.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": ["2048", "game", "puzzle", "ai"],
+  "license": "MIT"
+}
